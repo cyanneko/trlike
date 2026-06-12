@@ -12,8 +12,19 @@ else()
     add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-# 查找 SFML (后续渲染阶段需要)
-# find_package(SFML 2.6 COMPONENTS graphics window system QUIET)
+# ============================================================
+# SFML — FetchContent 自动下载 (首次构建需下载，约10-20MB)
+# ============================================================
+include(FetchContent)
+set(SFML_BUILD_AUDIO OFF CACHE BOOL "" FORCE)
+set(SFML_BUILD_NETWORK OFF CACHE BOOL "" FORCE)
+FetchContent_Declare(
+    SFML
+    GIT_REPOSITORY https://github.com/SFML/SFML.git
+    GIT_TAG 2.6.2
+    GIT_SHALLOW TRUE
+)
+FetchContent_MakeAvailable(SFML)
 
 # 源文件
 set(SOURCES
@@ -25,6 +36,10 @@ set(SOURCES
     src/World/World.cpp
     src/World/WorldGenerator.cpp
     src/World/TileRegistry.cpp
+    # Graphics
+    src/Graphics/Camera.cpp
+    src/Graphics/TileRenderer.cpp
+    src/Graphics/TextureAtlas.cpp
 )
 
 set(HEADERS
@@ -39,14 +54,17 @@ set(HEADERS
     src/World/Chunk.hpp
     src/World/World.hpp
     src/World/WorldGenerator.hpp
+    # Graphics
+    src/Graphics/Camera.hpp
+    src/Graphics/TileRenderer.hpp
+    src/Graphics/TextureAtlas.hpp
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS})
 
 target_include_directories(${PROJECT_NAME} PRIVATE src)
 
-# 后续链接 SFML
-# target_link_libraries(${PROJECT_NAME} PRIVATE sfml-graphics sfml-window sfml-system)
+target_link_libraries(${PROJECT_NAME} PRIVATE sfml-graphics sfml-window sfml-system)
 
 # ============================================================
 # 可选的单元测试 (Phase 2)

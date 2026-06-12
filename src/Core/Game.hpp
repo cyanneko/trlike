@@ -1,18 +1,27 @@
 #pragma once
 
+#include <SFML/Graphics/RenderWindow.hpp>
+#include <SFML/Graphics/Font.hpp>
+#include <SFML/Graphics/Text.hpp>
 #include <cstdint>
+#include <memory>
 
 namespace TR {
 
+class World;
+class Camera;
+class TileRenderer;
+class TextureAtlas;
+
 // ============================================================
-// Game — 游戏主类 (游戏循环、状态管理)
+// Game — 游戏主类 (SFML窗口 + 游戏循环 + 世界浏览)
 // ============================================================
 class Game {
 public:
     Game();
     ~Game();
 
-    /// 初始化游戏 (创建窗口、加载资源)
+    /// 初始化游戏 (创建窗口、加载资源、生成世界)
     bool Initialize();
 
     /// 运行主循环
@@ -24,21 +33,34 @@ public:
     /// 获取当前帧率
     [[nodiscard]] float GetFPS() const { return m_fps; }
 
-    /// 获取累计运行时间 (秒)
-    [[nodiscard]] double GetTotalTime() const { return m_totalTime; }
-
 private:
-    void ProcessInput();
+    void ProcessInput(float dt);
     void Update(float dt);
     void Render();
 
+    // --- SFML 窗口 ---
+    sf::RenderWindow m_window;
+    unsigned int m_windowWidth  = 1280;
+    unsigned int m_windowHeight = 720;
+    std::string m_windowTitle   = "TRlike - Map Explorer";
+
+    // --- 核心系统 ---
+    std::unique_ptr<World>        m_world;
+    std::unique_ptr<Camera>       m_camera;
+    std::unique_ptr<TileRenderer> m_renderer;
+    std::unique_ptr<TextureAtlas> m_atlas;
+
+    // --- 调试 UI ---
+    sf::Font m_debugFont;
+    sf::Text m_debugText;
+    bool m_showDebug = true;
+
+    // --- 状态 ---
     bool m_isRunning   = false;
     float m_fps        = 0.0f;
-    double m_totalTime = 0.0;
+    float m_fpsTimer   = 0.0f;
+    int   m_fpsFrames  = 0;
     uint64_t m_frameCount = 0;
-
-    // 窗口相关 (后续接入SFML)
-    // sf::RenderWindow m_window;
 };
 
 } // namespace TR
