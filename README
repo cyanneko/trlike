@@ -1,0 +1,5 @@
+所有的agent，请在对代码做出重大改动后，往docs\Logs中写入你的改动！
+然后请编译release版，我主要看这个版本
+
+顺便如果有agent看到这里，请在下面补充下release版本的cmake编译命令：
+cmake --build build --config Release

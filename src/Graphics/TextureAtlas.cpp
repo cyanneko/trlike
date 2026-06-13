@@ -7,7 +7,7 @@ namespace TR {
 TextureAtlas::TextureAtlas() = default;
 
 void TextureAtlas::Generate() {
-    m_tileTexSize = 16;
+    m_tileTexSize = 6;
     m_cols = 8;
     m_rows = 4;
 
@@ -32,10 +32,10 @@ void TextureAtlas::Generate() {
     { auto [col, row] = nextSlot(); m_tilePositions[TILE_CLAY]  = {col,row}; DrawTileToImage(img, col, row, 170, 95, 70); }
     {
         auto [col, row] = nextSlot(); m_tilePositions[TILE_WOOD] = {col,row};
-        int ox = col * 16, oy = row * 16;
-        for (int y = 0; y < 16; ++y) {
-            for (int x = 0; x < 16; ++x) {
-                bool isLine = (y % 5 == 0 || y % 5 == 1);
+        int ox = col * m_tileTexSize, oy = row * m_tileTexSize;
+        for (int y = 0; y < m_tileTexSize; ++y) {
+            for (int x = 0; x < m_tileTexSize; ++x) {
+                bool isLine = (y % 3 == 0);
                 auto shade = static_cast<uint8_t>(isLine ? 95 : 115);
                 img.setPixel(ox + x, oy + y, sf::Color(shade, static_cast<uint8_t>(shade * 0.52f), static_cast<uint8_t>(shade * 0.22f)));
             }

@@ -2,46 +2,82 @@
 
 #include "World.hpp"
 #include "Core/Math.hpp"
-#include <memory>
-
-// 前向声明 FastNoiseLite (如果使用)
-// 当前使用自带的简单噪声实现
+#include <cstdint>
 
 namespace TR {
 
-// ============================================================
-// WorldGenerator — 程序化世界生成器
-// ============================================================
 class WorldGenerator {
 public:
     explicit WorldGenerator(uint64_t seed);
 
-    /// 生成整个世界的初始地形 (用于首次创建)
     void GenerateWorld(World& world);
-
-    /// 生成单个Chunk的内容
     void GenerateChunk(World& world, Chunk& chunk);
-
-    /// 重新设置种子
     void SetSeed(uint64_t seed);
 
 private:
-    // --- 生成阶段 ---
+    struct Noise1DSettings {
+        double frequency = 1.0;
+        double amplitude = 1.0;
+        int octaves = 1;
+        double lacunarity = 2.0;
+        double persistence = 0.5;
+    };
+
+    struct Noise2DSettings {
+        double frequency = 1.0;
+        double amplitude = 1.0;
+        int octaves = 1;
+        double lacunarity = 2.0;
+        double persistence = 0.5;
+        double rotationRadians = 0.0;
+    };
+
+    struct CaveGenerationSettings {
+        // > 1.0 creates more cave tiles by lowering the carve threshold.
+        double density = 1.08;
+        // > 1.0 makes the main cave field lower-frequency, producing larger caverns.
+        double size = 0.95;
+        // Higher values make cave edges more broken and irregular.
+        double edgeRoughness = 1.10;
+        // 0.0 keeps pure noise clustering, 1.0 strongly evens cave coverage across the map.
+        double uniformity = 0.90;
+        // The logical tile size of each distribution region that receives a cave anchor.
+        int distributionCellSize = 120;
+        // Tiles below this coverage receive a soft penalty instead of being blocked.
+        double minimumAnchorCoverage = 0.10;
+        // Controls how tightly each region's cave cluster stays around its anchor.
+        double anchorInnerRadius = 0.12;
+        double anchorOuterRadius = 0.62;
+        // Higher values preserve more solid separators between neighboring clusters.
+        double separationStrength = 0.48;
+        // Adapts each chunk threshold toward a target local A-B average.
+        double adaptiveThresholdTarget = 0.20;
+        double adaptiveThresholdStrength = 0.55;
+        double adaptiveThresholdMaxOffset = 0.08;
+        int adaptiveThresholdNeighborhood = 1;
+        int adaptiveThresholdSamplesPerAxis = 4;
+        // Equalizes cave score per distribution cell to reduce empty or over-dense regions.
+        double regionalEqualizationTarget = 0.22;
+        double regionalEqualizationStrength = 0.70;
+        double regionalEqualizationMaxOffset = 0.075;
+        int regionalEqualizationSamplesPerAxis = 4;
+        // Keeps a stable soil layer before caves are allowed to carve.
+        int surfaceProtectionDepth = 12;
+    };
+
+    inline static constexpr CaveGenerationSettings kCaveSettings{};
+
     void GenerateTerrain(World& world, Chunk& chunk);
     void GenerateCaves(World& world, Chunk& chunk);
-    void PlaceOres(World& world, Chunk& chunk);
-    void FillBackgroundWalls(World& world, Chunk& chunk);
 
-    // --- 噪声函数 ---
-    /// 简单的值噪声 (后续可替换为 Perlin/Simplex)
-    [[nodiscard]] double Noise2D(double x, double y) const;
+    [[nodiscard]] double Perlin1D(double x, uint64_t salt) const;
+    [[nodiscard]] double Perlin2D(double x, double y, uint64_t salt) const;
+    [[nodiscard]] double FractalPerlin1D(double x, const Noise1DSettings& settings, uint64_t salt) const;
+    [[nodiscard]] double FractalPerlin2D(double x, double y, const Noise2DSettings& settings, uint64_t salt) const;
 
-    /// 用于洞穴生成的3D噪声 (x, y + 种子作为第三维)
-    [[nodiscard]] double CaveNoise(double worldX, double worldY) const;
-
-    // --- 辅助 ---
     [[nodiscard]] int GetSurfaceHeight(int worldX) const;
-    [[nodiscard]] bool ShouldPlaceOre(int worldX, int worldY, double threshold, double scale) const;
+    [[nodiscard]] int ToLogicalX(int worldX) const;
+    [[nodiscard]] int ToLogicalY(int worldY) const;
 
     uint64_t m_seed;
     Math::XorShift64 m_rng;

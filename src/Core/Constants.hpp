@@ -9,11 +9,15 @@ namespace TR::Constants {
 // ============================================================
 constexpr int CHUNK_SIZE          = 32;      // 每个Chunk的边长 (32x32 tiles)
 constexpr int CHUNK_TILE_COUNT    = CHUNK_SIZE * CHUNK_SIZE;  // 1024
-constexpr int WORLD_WIDTH         = 8400;    // 小世界宽度 (tiles)
-constexpr int WORLD_HEIGHT        = 2400;    // 小世界高度 (tiles)
-constexpr int WORLD_SURFACE_Y     = 800;     // 地表Y坐标
-constexpr int WORLD_CHUNKS_X      = WORLD_WIDTH / CHUNK_SIZE;
-constexpr int WORLD_CHUNKS_Y      = WORLD_HEIGHT / CHUNK_SIZE;
+constexpr int WORLD_MIN_X         = -2000;   // 逻辑世界左边界
+constexpr int WORLD_MAX_X         = 2000;    // 逻辑世界右边界
+constexpr int WORLD_MIN_Y         = -700;    // 逻辑世界上边界
+constexpr int WORLD_MAX_Y         = 300;     // 逻辑世界下边界
+constexpr int WORLD_WIDTH         = WORLD_MAX_X - WORLD_MIN_X + 1;
+constexpr int WORLD_HEIGHT        = WORLD_MAX_Y - WORLD_MIN_Y + 1;
+constexpr int WORLD_SURFACE_Y     = -WORLD_MIN_Y; // 逻辑 y=0 对应的数组Y坐标
+constexpr int WORLD_CHUNKS_X      = (WORLD_WIDTH + CHUNK_SIZE - 1) / CHUNK_SIZE;
+constexpr int WORLD_CHUNKS_Y      = (WORLD_HEIGHT + CHUNK_SIZE - 1) / CHUNK_SIZE;
 
 // ============================================================
 // 区块加载
